@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Similar Tickets</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: Gainsboro;
+        }
+        .container {
+            width: 50%;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .input-group button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .input-group button:hover {
+            background-color: #0056b3;
+        }
+        .similar-tickets {
+            margin-top: 20px;
+        }
+        .ticket-id {
+            cursor: pointer;
+            color: #007BFF;
+            text-decoration: underline;
+        }
+        .ticket-id:hover {
+            color: #0056b3;
+        }
+        .summary {
+            background-color: blue;
+            color: white;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Find Similar Tickets</h1>
+        </div>
+        <div class="input-group">
+            <label for="ticket_id">Enter Ticket ID:</label>
+            <input type="text" id="ticket_id" name="ticket_id">
+            <button onclick="findSimilar()">Find Similar</button>
+        </div>
+        <div class="similar-tickets" id="similar-tickets"></div>
+    </div>
+ 
+    <script>
+        function findSimilar() {
+            const ticketId = document.getElementById('ticket_id').value;
+            fetch('/find_similar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ ticket_id: ticketId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const similarTicketsDiv = document.getElementById('similar-tickets');
+                similarTicketsDiv.innerHTML = '';
+                if (data.message) {
+                    similarTicketsDiv.innerHTML = `<p>${data.message}</p>`;
+                } else {
+                    const tickets = data.map(ticket => `
+                        <div>
+                            <p>Ticket ID: <span class="ticket-id" onclick="findSimilarForId('${ticket['Ticket ID']}')">${ticket['Ticket ID']}</span> - ${ticket['Short Description']} (Similarity: ${ticket['similarity'].toFixed(2)})</p>
+                            <div class="summary">Summary: ${ticket['summary']}</div>
+                        </div>
+                    `).join('');
+                    similarTicketsDiv.innerHTML = `<h2>Similar Tickets</h2>${tickets}`;
+                }
+            });
+        }
+ 
+        function findSimilarForId(ticketId) {
+            document.getElementById('ticket_id').value = ticketId;
+            findSimilar();
+        }
+    </script>
+</body>
+</html>
